@@ -9,8 +9,13 @@
     "outDir": "dist",
     "sourceMap": true,
     "declaration": true,
-    "rootDir": "src",
-    "forceConsistentCasingInFileNames": true
+    "baseUrl": "src",
+    "paths": {
+      "@/*": ["*"]
+    },
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

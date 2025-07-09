@@ -4,25 +4,26 @@ A web-based personal finance tracker that allows users to manage their income, e
 
 ## Project Overview
 
-This project is built using a monorepo structure with:
-- **Client**: Next.js, TypeScript, TailwindCSS, NextAuth.js
-- **Server**: HonoJS, Node.js, MongoDB
+This project is built using a modern full-stack architecture with:
+- **Client**: Next.js 14.2.30, TypeScript, TailwindCSS, App Router
+- **Server**: Node.js/Express, MongoDB
 
 ## Features
 
 - **Dashboard**: Visualize income, expenses, and savings with interactive charts
 - **Transaction Management**: Add, edit, or delete income/expense entries with categories
 - **Budget Goals**: Set and track monthly savings or spending goals
-- **Authentication**: Secure user login with NextAuth.js
+- **Authentication**: Secure user login with JWT and bcrypt password hashing
 - **Data Persistence**: Store user data using MongoDB
 - **Responsive Design**: Optimized for mobile and desktop using TailwindCSS
+- **User Management**: Register, login, and manage user profiles
 
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js (v18 or higher)
-- pnpm (v8 or higher)
+- npm or yarn
 - MongoDB (local or Atlas)
 
 ### Installation
@@ -33,9 +34,15 @@ This project is built using a monorepo structure with:
    cd Personal-Finance-Dashboard
    ```
 
-2. Install dependencies
+2. Install dependencies for both client and server
    ```bash
-   pnpm install
+   # Install client dependencies
+   cd client
+   npm install
+   
+   # Install server dependencies
+   cd ../server
+   npm install
    ```
 
 3. Set up environment variables
@@ -48,47 +55,71 @@ This project is built using a monorepo structure with:
    
    Update the `.env` files with your configuration.
 
-4. Start development servers
+4. Seed the database (optional)
    ```bash
-   # Start both client and server
-   pnpm dev
+   # From the server directory
+   npm run seed
+   ```
+
+5. Start development servers
+   ```bash
+   # Start the client (from client directory)
+   npm run dev
+   # The client will run on http://localhost:3001
    
-   # Or start them separately
-   pnpm --filter client dev
-   pnpm --filter server dev
+   # Start the server (from server directory)
+   npm run dev
+   # The server will run on http://localhost:5000
    ```
 
 ## Project Structure
 
 ```
 Personal-Finance-Dashboard/
-├── client/                 # Next.js frontend
-│   ├── app/                # App router pages
-│   ├── components/         # React components
-│   └── public/             # Static assets
-├── server/                 # HonoJS backend
+├── client/                      # Next.js 14.2.30 frontend
 │   ├── src/
-│   │   ├── models/         # MongoDB models
-│   │   ├── routes/         # API routes
-│   │   └── index.ts        # Server entry point
-└── package.json            # Root package.json for monorepo
+│   │   ├── app/                 # App router pages and components
+│   │   ├── components/          # Reusable UI components
+│   │   ├── context/             # React context providers
+│   │   ├── hooks/               # Custom React hooks
+│   │   ├── lib/                 # Shared utilities
+│   │   ├── services/            # API services
+│   │   └── types/               # TypeScript type definitions
+│   ├── public/                  # Static assets
+│   └── tailwind.config.ts       # TailwindCSS configuration
+├── server/                      # Express backend
+│   ├── src/
+│   │   ├── config/              # Server configuration
+│   │   ├── controllers/         # Route controllers
+│   │   ├── middleware/          # Express middleware
+│   │   ├── models/              # MongoDB models
+│   │   ├── routes/              # API routes
+│   │   ├── services/            # Business logic services
+│   │   └── utils/               # Utility functions
+│   ├── .env                     # Environment variables
+│   └── .env.example             # Environment variables template
+└── package.json                 # Root package.json
 ```
 
 ## Technologies Used
 
 ### Frontend
-- **Next.js**: React framework with App Router
+- **Next.js 14.2.30**: React framework with App Router
 - **TypeScript**: Type-safe JavaScript
 - **TailwindCSS**: Utility-first CSS framework
-- **NextAuth.js**: Authentication for Next.js
+- **React Hook Form**: Form handling and validation
 - **Chart.js**: Data visualization
+- **SWR/React Query**: Data fetching and caching
+- **Axios**: HTTP client
 
 ### Backend
-- **HonoJS**: Lightweight, fast web framework
+- **Express**: Web framework for Node.js
 - **Node.js**: JavaScript runtime
 - **MongoDB**: NoSQL database
 - **Mongoose**: MongoDB object modeling
+- **bcrypt**: Password hashing
 - **JWT**: JSON Web Tokens for authentication
+- **dotenv**: Environment variable management
 
 ## License
 
