@@ -23,6 +23,8 @@ export const apiClient = async <T>(
   endpoint: string,
   options: RequestOptions = { method: 'GET', requiresAuth: true }
 ): Promise<T> => {
+  // Add console logging for debugging
+  console.log(`API Request: ${endpoint}`, options);
   const { method, body, requiresAuth = true } = options;
   
   // Default headers
@@ -34,8 +36,10 @@ export const apiClient = async <T>(
   // Add auth token if required
   if (requiresAuth) {
     const session = await getSession();
-    if (session?.accessToken) {
-      headers['Authorization'] = `Bearer ${session.accessToken}`;
+    // Use type assertion for the session token
+    const sessionWithToken = session as { accessToken?: string };
+    if (session && sessionWithToken.accessToken) {
+      headers['Authorization'] = `Bearer ${sessionWithToken.accessToken}`;
     }
   }
   
@@ -51,13 +55,28 @@ export const apiClient = async <T>(
     requestOptions.body = JSON.stringify(body);
   }
   
+  // Create a timeout promise
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => reject(new ApiError('Request timeout', 408)), 10000); // 10 second timeout
+  });
+
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, requestOptions);
+    // Race between the fetch and the timeout
+    const response = await Promise.race([
+      fetch(`${API_BASE_URL}${endpoint}`, requestOptions),
+      timeoutPromise
+    ]) as Response;
+    
+    // Log response status for debugging
+    console.log(`API Response: ${endpoint}`, { status: response.status, ok: response.ok });
     
     // Handle non-JSON responses
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.indexOf('application/json') !== -1) {
       const data = await response.json();
+      
+      // Log response data for debugging
+      console.log(`API Data: ${endpoint}`, data);
       
       // Handle API errors
       if (!response.ok) {
@@ -74,9 +93,18 @@ export const apiClient = async <T>(
     
     return {} as T;
   } catch (error) {
+    // Enhanced error logging
+    console.error(`API Error: ${endpoint}`, error);
+    
     if (error instanceof ApiError) {
       throw error;
     }
+    
+    // More specific error handling
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new ApiError('Network connection error. Please check your internet connection.', 503);
+    }
+    
     throw new ApiError((error as Error).message || 'Network error', 500);
   }
 };

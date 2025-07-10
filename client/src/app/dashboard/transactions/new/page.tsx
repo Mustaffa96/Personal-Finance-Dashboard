@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSession } from 'next-auth/react';
+import type { Session } from 'next-auth';
 import { useCategories } from '../../hooks/useCategories';
 import { CategoryType } from '../../../../domain/entities/Category';
 import { ApiTransactionRepository } from '../../../../adapters/repositories/TransactionRepository';
@@ -15,7 +16,7 @@ import { TransactionType } from '../../../../domain/entities/Transaction';
 const transactionSchema = z.object({
   description: z.string().min(1, 'Description is required'),
   amount: z.string().min(1, 'Amount is required'),
-  category: z.string().min(1, 'Category is required'),
+  categoryId: z.string().min(1, 'Category is required'),
   date: z.string().min(1, 'Date is required'),
   type: z.enum(['income', 'expense']),
   notes: z.string().optional(),
@@ -27,7 +28,7 @@ type TransactionFormValues = z.infer<typeof transactionSchema>;
 
 export default function NewTransactionPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session } = useSession() as { data: Session | null };
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categoryType, setCategoryType] = useState<CategoryType>(CategoryType.EXPENSE);
   
@@ -50,7 +51,7 @@ export default function NewTransactionPage() {
     setCategoryType(newCategoryType);
     
     // Clear the selected category when type changes
-    setValue('category', '');
+    setValue('categoryId', '');
   }, [transactionType, setValue]);
   
   const onSubmit = async (data: TransactionFormValues) => {
@@ -74,7 +75,7 @@ export default function NewTransactionPage() {
         userId: session.user.id,
         description: data.description,
         amount: finalAmount,
-        category: data.category, // Using category ID from the Category entity
+        categoryId: data.categoryId, // Using category ID from the Category entity
         type: data.type === 'income' ? TransactionType.INCOME : TransactionType.EXPENSE,
         date: new Date(data.date),
         notes: data.notes || undefined,
@@ -172,12 +173,12 @@ export default function NewTransactionPage() {
             
             {/* Category */}
             <div>
-              <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700 mb-1">
                 Category
               </label>
               <select
-                id="category"
-                {...register('category')}
+                id="categoryId"
+                {...register('categoryId')}
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                 disabled={isCategoriesLoading}
               >
@@ -188,8 +189,8 @@ export default function NewTransactionPage() {
                   </option>
                 ))}
               </select>
-              {errors.category && (
-                <p className="mt-1 text-sm text-red-600">{errors.category.message}</p>
+              {errors.categoryId && (
+                <p className="mt-1 text-sm text-red-600">{errors.categoryId.message}</p>
               )}
             </div>
             

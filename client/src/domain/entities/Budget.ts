@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { TransactionCategory } from './Transaction';
 
 // Budget period enum
 export enum BudgetPeriod {
@@ -12,7 +11,7 @@ export enum BudgetPeriod {
 export const BudgetSchema = z.object({
   id: z.string().optional(), // MongoDB generates _id
   userId: z.string(),
-  category: z.nativeEnum(TransactionCategory),
+  categoryId: z.string(),
   amount: z.number().positive('Amount must be positive'),
   period: z.nativeEnum(BudgetPeriod),
   startDate: z.date(),

@@ -8,16 +8,22 @@ export enum TransactionType {
 
 // Zod schema for validation
 export const TransactionSchema = z.object({
-  id: z.string().optional(), // MongoDB generates _id
+  id: z.string().optional(), // Client-side id
+  _id: z.union([z.string(), z.object({}).passthrough()]).optional(), // Server-side MongoDB _id
   userId: z.string(),
   type: z.nativeEnum(TransactionType),
-  category: z.string(), // Category ID from the Category entity
+  categoryId: z.string().optional(), // Category ID from the Category entity
+  category: z.string().optional(), // For backward compatibility with API responses that use 'category' instead of 'categoryId'
   amount: z.number().positive('Amount must be positive'),
   description: z.string().min(2, 'Description must be at least 2 characters'),
-  date: z.date(),
+  date: z.union([z.date(), z.string()]).transform(val => 
+    typeof val === 'string' ? new Date(val) : val
+  ), // Support both Date and string formats
   notes: z.string().optional(),
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
+  createdAt: z.union([z.date(), z.string()]).optional()
+    .transform(val => val ? (typeof val === 'string' ? new Date(val) : val) : undefined),
+  updatedAt: z.union([z.date(), z.string()]).optional()
+    .transform(val => val ? (typeof val === 'string' ? new Date(val) : val) : undefined),
 });
 
 // Transaction entity type

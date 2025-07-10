@@ -1,12 +1,34 @@
 'use client';
 
-import { useState, useEffect, memo } from 'react';
-import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 
-// Use dynamic imports with loading priority for critical components
-const Sidebar = dynamic(() => import('./Sidebar'), { ssr: true });
-const Header = dynamic(() => import('./Header'), { ssr: true });
+// Use dynamic imports with optimized loading strategy
+const Sidebar = dynamic(() => import('./Sidebar'), { ssr: false });
+const Header = dynamic(() => import('./Header'), { ssr: false });
+const DashboardSummary = dynamic(() => import('./DashboardSummary'), { 
+  ssr: false,
+  loading: () => (
+    <div className="w-full animate-pulse">
+      <div className="flex flex-wrap w-full">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="w-full lg:w-6/12 xl:w-3/12 px-4">
+            <div className="relative flex flex-col min-w-0 break-words bg-white rounded-lg mb-6 xl:mb-0 shadow-lg h-[140px]">
+              <div className="flex-auto p-4">
+                <div className="flex flex-wrap">
+                  <div className="relative w-full pr-4 max-w-full flex-grow flex-1">
+                    <div className="h-4 w-16 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-6 w-24 bg-gray-200 rounded"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+});
 
 interface DashboardClientProps {
   user: {
@@ -57,26 +79,17 @@ export default function DashboardClient({ user, children }: DashboardClientProps
         <div className="relative bg-blue-600 md:pt-24 pb-24 pt-10">
           <div className="px-4 md:px-10 mx-auto w-full">
             <div className="flex flex-wrap items-center">
-              <div className="w-full lg:w-6/12 xl:w-8/12 px-4">
+              <div className="w-full px-4">
                 <h2 className="text-white text-2xl font-bold mb-2">Welcome back, {user.name || 'User'}</h2>
-                {/* This is the LCP element - optimized with better contrast and rendering priority */}
-                <p className="text-white font-medium">Track, manage, and optimize your personal finances with our dashboard</p>
               </div>
-              <div className="w-full lg:w-6/12 xl:w-4/12 px-4 text-right">
-                <Link
-                  href="/dashboard/transactions/new"
-                  className="bg-white text-blue-600 active:bg-blue-100 text-xs font-bold uppercase px-4 py-2 rounded shadow hover:shadow-lg outline-none focus:outline-none ease-linear transition-all duration-150 inline-flex items-center"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  Add Transaction
-                </Link>
-              </div>
+            </div>
+            {/* Dashboard summary cards */}
+            <div className="flex flex-wrap">
+              <DashboardSummary userId={user.id} />
             </div>
           </div>
         </div>
-        <div className="px-4 md:px-10 mx-auto w-full -m-16 pt-4 pb-16 min-h-screen">
+        <div className="px-4 md:px-10 mx-auto w-full pt-24 pb-16 min-h-screen relative z-10 bg-gray-100">
           <div className="flex flex-wrap">
             <div className="w-full">
               <main className="flex-1 overflow-y-auto bg-transparent">

@@ -27,7 +27,7 @@ export const TransactionSchema = z.object({
   id: z.string().optional(), // MongoDB generates _id
   userId: z.string(),
   type: z.nativeEnum(TransactionType),
-  category: z.string(), // Category ID from the Category collection
+  categoryId: z.string(), // Category ID from the Category collection
   amount: z.number().positive('Amount must be positive'),
   description: z.string().min(2, 'Description must be at least 2 characters'),
   date: z.date(),

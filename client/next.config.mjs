@@ -1,32 +1,46 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Optimize page loading speed
+  poweredByHeader: false,
   reactStrictMode: true,
   swcMinify: true,
+  // Improve LCP by enabling compression
+  compress: true,
+  // Optimize bundle size with production mode
+  productionBrowserSourceMaps: false,
   compiler: {
     // Remove console logs in production
     removeConsole: process.env.NODE_ENV === 'production',
   },
   experimental: {
-    optimizePackageImports: ["@tanstack/react-query"],
+    // Optimize imports for better performance
+    optimizePackageImports: ["@tanstack/react-query", "@radix-ui/react-icons", "lucide-react"],
     // Improve page loading performance
     optimizeCss: true,
-    // Optimize fonts
-    fontLoaders: [
-      { loader: '@next/font/google', options: { subsets: ['latin'] } },
-    ],
+    // Optimize LCP by prioritizing critical CSS
+    optimisticClientCache: true,
+    // Optimize bundle size
+    optimizeServerReact: true,
+    // Improve LCP with server components
+    serverComponentsExternalPackages: [],
+    // Enable streaming for faster initial load
+    serverActions: { bodySizeLimit: '2mb' },
   },
   // Enable image optimization
   images: {
+    // Improve LCP by optimizing image loading
+    minimumCacheTTL: 60,
+    dangerouslyAllowSVG: true,
     remotePatterns: [
       {
         protocol: 'https',
         hostname: '**',
       },
     ],
-    // Optimize image loading
+    // Optimize image loading for better LCP
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    formats: ['image/webp'],
+    formats: ['image/webp', 'image/avif'],
   },
   async rewrites() {
     return [

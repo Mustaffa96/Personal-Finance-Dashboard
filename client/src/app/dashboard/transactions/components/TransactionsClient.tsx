@@ -39,10 +39,33 @@ export default function TransactionsClient({ userId }: TransactionsClientProps) 
   });
 
   // Function to get category name by ID
-  const getCategoryName = (categoryId: string): string => {
-    if (!categories) return categoryId;
-    const category = categories.find(cat => cat.id === categoryId);
-    return category ? category.name : categoryId;
+  const getCategoryName = (categoryId?: string): string => {
+    // Handle undefined categoryId
+    if (!categoryId) {
+      return 'Uncategorized';
+    }
+    
+    // Handle categories not loaded yet
+    if (!categories || categories.length === 0) {
+      return 'Loading...';
+    }
+    
+    // Try to find by id first
+    let category = categories.find(cat => cat.id === categoryId);
+    
+    // If not found by id, try to find by _id (MongoDB ID format)
+    if (!category) {
+      category = categories.find(cat => cat._id === categoryId);
+    }
+    
+    // If still not found, log and return unknown
+    if (!category) {
+      console.log('Category not found for ID:', categoryId, 
+                'Available categories:', categories.map(c => ({ id: c.id, _id: c._id, name: c.name })));
+      return 'Unknown';
+    }
+    
+    return category.name;
   };
 
   if (isError) {
@@ -144,7 +167,7 @@ export default function TransactionsClient({ userId }: TransactionsClientProps) 
                               {transaction.description}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {getCategoryName(transaction.category)}
+                              {getCategoryName(transaction.categoryId || transaction.category)}
                             </td>
                             <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
                               transaction.type === TransactionType.INCOME ? 'text-accent-600' : 'text-secondary-600'

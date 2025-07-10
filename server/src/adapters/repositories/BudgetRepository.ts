@@ -1,6 +1,5 @@
 import { ObjectId } from 'mongodb';
 import { Budget, CreateBudgetDTO, UpdateBudgetDTO } from '../../domain/entities/Budget';
-import { TransactionCategory } from '../../domain/entities/Transaction';
 import { BudgetRepository } from '../../domain/interfaces/repositories/BudgetRepository';
 import { collections } from '../../infrastructure/database/mongodb';
 
@@ -46,13 +45,13 @@ export class MongoBudgetRepository implements BudgetRepository {
     }
   }
 
-  async findByUserIdAndCategory(userId: string, category: TransactionCategory): Promise<Budget | null> {
+  async findByUserIdAndCategoryId(userId: string, categoryId: string): Promise<Budget | null> {
     if (!collections.budgets) {
       throw new Error('Budgets collection not initialized');
     }
 
     try {
-      const budget = await collections.budgets.findOne({ userId, category });
+      const budget = await collections.budgets.findOne({ userId, categoryId });
       if (!budget) return null;
 
       return {
@@ -63,7 +62,7 @@ export class MongoBudgetRepository implements BudgetRepository {
       } as Budget;
     } catch (error) {
       // Log error to a logging service or throw a custom error
-      throw new Error(`Failed to find budget by user ID and category: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(`Failed to find budget by user ID and categoryId: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 

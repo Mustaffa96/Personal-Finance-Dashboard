@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import RegisterForm from './components/RegisterForm';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '../api/auth/[...nextauth]/route';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../../lib/auth-options';
 import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {

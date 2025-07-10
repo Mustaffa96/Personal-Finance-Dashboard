@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '../../api/auth/[...nextauth]/route';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../../../lib/auth-options';
 import TransactionsClient from './components/TransactionsClient';
 import { redirect } from 'next/navigation';
 

@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { MongoBudgetRepository } from '../repositories/BudgetRepository';
 import { BudgetSchema } from '../../domain/entities/Budget';
-import { TransactionCategory } from '../../domain/entities/Transaction';
+
 import { authenticate } from '../middlewares/auth';
 
 const budgetRepository = new MongoBudgetRepository();
@@ -28,7 +28,7 @@ export function registerBudgetRoutes(server: FastifyInstance) {
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { userId } = request.user as { userId: string };
-      const query = request.query as { active?: string; category?: string };
+      const query = request.query as { active?: string; categoryId?: string };
       
       // Filter by active status if provided
       if (query.active === 'true') {
@@ -37,11 +37,11 @@ export function registerBudgetRoutes(server: FastifyInstance) {
         return reply.status(200).send(budgets);
       }
       
-      // Filter by category if provided
-      if (query.category && Object.values(TransactionCategory).includes(query.category as TransactionCategory)) {
-        const budget = await budgetRepository.findByUserIdAndCategory(
+      // Filter by categoryId if provided
+      if (query.categoryId) {
+        const budget = await budgetRepository.findByUserIdAndCategoryId(
           userId,
-          query.category as TransactionCategory
+          query.categoryId
         );
         return reply.status(200).send(budget ? [budget] : []);
       }

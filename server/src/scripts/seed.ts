@@ -3,7 +3,7 @@ import 'dotenv/config';
 import bcrypt from 'bcrypt';
 import { ObjectId } from 'mongodb';
 import { connectToDatabase, closeDatabase, collections } from '../infrastructure/database/mongodb';
-import { TransactionType, TransactionCategory } from '../domain/entities/Transaction';
+import { TransactionType } from '../domain/entities/Transaction';
 import { BudgetPeriod } from '../domain/entities/Budget';
 import { CategoryType } from '../domain/entities/Category';
 
@@ -191,7 +191,7 @@ async function seed() {
           _id: new ObjectId(),
           userId: userId.toString(),
           type: TransactionType.INCOME,
-          category: categoryIds.salary.toString(),
+          categoryId: categoryIds.salary.toString(),
           amount: 5000,
           description: 'Monthly salary',
           date: new Date(2025, 6, 1), // July 1, 2025
@@ -202,7 +202,7 @@ async function seed() {
           _id: new ObjectId(),
           userId: userId.toString(),
           type: TransactionType.INCOME,
-          category: categoryIds.investment.toString(),
+          categoryId: categoryIds.investment.toString(),
           amount: 500,
           description: 'Stock dividends',
           date: new Date(2025, 6, 5), // July 5, 2025
@@ -215,7 +215,7 @@ async function seed() {
           _id: new ObjectId(),
           userId: userId.toString(),
           type: TransactionType.EXPENSE,
-          category: categoryIds.housing.toString(),
+          categoryId: categoryIds.housing.toString(),
           amount: 1200,
           description: 'Rent payment',
           date: new Date(2025, 6, 3), // July 3, 2025
@@ -226,7 +226,7 @@ async function seed() {
           _id: new ObjectId(),
           userId: userId.toString(),
           type: TransactionType.EXPENSE,
-          category: TransactionCategory.FOOD,
+          categoryId: categoryIds.food.toString(),
           amount: 350,
           description: 'Grocery shopping',
           date: new Date(2025, 6, 4), // July 4, 2025
@@ -237,7 +237,7 @@ async function seed() {
           _id: new ObjectId(),
           userId: userId.toString(),
           type: TransactionType.EXPENSE,
-          category: TransactionCategory.UTILITIES,
+          categoryId: categoryIds.utilities.toString(),
           amount: 120,
           description: 'Electricity bill',
           date: new Date(2025, 6, 6), // July 6, 2025
@@ -248,7 +248,7 @@ async function seed() {
           _id: new ObjectId(),
           userId: userId.toString(),
           type: TransactionType.EXPENSE,
-          category: TransactionCategory.ENTERTAINMENT,
+          categoryId: categoryIds.entertainment.toString(),
           amount: 80,
           description: 'Movie night',
           date: new Date(2025, 6, 7), // July 7, 2025
@@ -269,7 +269,7 @@ async function seed() {
         {
           _id: new ObjectId(),
           userId: userId.toString(),
-          category: TransactionCategory.FOOD,
+          categoryId: categoryIds.food.toString(),
           amount: 500,
           period: BudgetPeriod.MONTHLY,
           startDate: new Date(2025, 6, 1), // July 1, 2025
@@ -280,7 +280,7 @@ async function seed() {
         {
           _id: new ObjectId(),
           userId: userId.toString(),
-          category: TransactionCategory.ENTERTAINMENT,
+          categoryId: categoryIds.entertainment.toString(),
           amount: 200,
           period: BudgetPeriod.MONTHLY,
           startDate: new Date(2025, 6, 1), // July 1, 2025
@@ -291,7 +291,7 @@ async function seed() {
         {
           _id: new ObjectId(),
           userId: userId.toString(),
-          category: TransactionCategory.UTILITIES,
+          categoryId: categoryIds.utilities.toString(),
           amount: 300,
           period: BudgetPeriod.MONTHLY,
           startDate: new Date(2025, 6, 1), // July 1, 2025

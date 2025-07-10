@@ -1,7 +1,6 @@
 import { apiClient } from '../../infrastructure/api/apiClient';
 import { BudgetRepository } from '../../domain/interfaces/repositories/BudgetRepository';
 import { CreateBudgetDTO, UpdateBudgetDTO, BudgetResponseDTO } from '../../domain/entities/Budget';
-import { CategoryType } from '../../domain/entities/Category';
 
 export class ApiBudgetRepository implements BudgetRepository {
   private readonly baseUrl = '/budgets';
@@ -25,9 +24,9 @@ export class ApiBudgetRepository implements BudgetRepository {
     });
   }
 
-  async findByUserIdAndCategory(category: CategoryType): Promise<BudgetResponseDTO | null> {
+  async findByUserIdAndCategory(categoryId: string): Promise<BudgetResponseDTO | null> {
     try {
-      return await apiClient<BudgetResponseDTO>(`${this.baseUrl}?category=${category}`, {
+      return await apiClient<BudgetResponseDTO>(`${this.baseUrl}?categoryId=${categoryId}`, {
         method: 'GET',
       });
     } catch (error) {

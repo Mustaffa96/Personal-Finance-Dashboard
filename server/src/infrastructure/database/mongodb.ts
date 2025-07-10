@@ -45,7 +45,7 @@ export async function connectToDatabase(): Promise<void> {
     await collections.transactions.createIndex({ userId: 1, type: 1 });
     await collections.transactions.createIndex({ userId: 1, date: 1 });
     await collections.budgets.createIndex({ userId: 1 });
-    await collections.budgets.createIndex({ userId: 1, category: 1 });
+    await collections.budgets.createIndex({ userId: 1, categoryId: 1 });
     await collections.categories.createIndex({ type: 1 });
 
     logger.info('Connected to MongoDB');
