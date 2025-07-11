@@ -83,22 +83,15 @@ export async function buildServer(): Promise<FastifyInstance> {
     transformStaticCSP: (header) => header
   });
   
-  // Add global hook for CORS protection on all non-auth routes
+  // Add global hook for CORS protection on all routes except auth and documentation
   server.addHook('onRequest', async (request, reply) => {
-    // Skip CORS protection for authentication routes, documentation, categories, and OPTIONS requests
-    if (request.method === 'OPTIONS' || 
-        request.url.startsWith('/api/auth/login') || 
-        request.url.startsWith('/api/auth/register') || 
-        request.url.startsWith('/api/categories') || 
-        request.url.startsWith('/api/users') ||
-        request.url.startsWith('/api/transactions') ||
-        request.url.startsWith('/api/budgets') ||
-        request.url.startsWith('/documentation') || 
-        request.url === '/health') {
+    // Skip CORS protection for documentation and health check routes
+    if (request.url.startsWith('/documentation') || request.url === '/health') {
       return;
     }
     
     // Apply CORS protection for all other routes
+    // The corsProtection middleware already handles skipping auth routes and OPTIONS requests
     await corsProtection(request, reply);
   });
 
