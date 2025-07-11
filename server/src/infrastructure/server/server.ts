@@ -46,8 +46,8 @@ export async function buildServer(): Promise<FastifyInstance> {
         url: 'https://swagger.io',
         description: 'Find more info here'
       },
-      host: `${process.env.HOST || 'localhost'}:${process.env.PORT || '5000'}`,
-      schemes: ['http'],
+      host: process.env.NODE_ENV === 'production' ? process.env.PUBLIC_URL || 'personal-finance-dashboard-4i81.onrender.com' : `${process.env.HOST || 'localhost'}:${process.env.PORT || '5000'}`,
+      schemes: process.env.NODE_ENV === 'production' ? ['https', 'http'] : ['http'],
       consumes: ['application/json'],
       produces: ['application/json'],
       securityDefinitions: {
