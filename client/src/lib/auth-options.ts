@@ -18,8 +18,8 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const response = await apiClient<{ user: { id: string; name: string; email: string }; accessToken: string }>(
-            '/auth/login',
+          const response = await apiClient<{ user: { id: string; name: string; email: string }; token: string }>(
+            '/api/auth/login',
             {
               method: 'POST',
               body: {
@@ -30,12 +30,12 @@ export const authOptions: NextAuthOptions = {
             }
           );
 
-          if (response.user && response.accessToken) {
+          if (response.user && response.token) {
             return {
               id: response.user.id,
               name: response.user.name,
               email: response.user.email,
-              accessToken: response.accessToken,
+              accessToken: response.token,
             };
           }
 
