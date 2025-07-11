@@ -1,15 +1,26 @@
-import { MongoClient, Db, Collection } from 'mongodb';
+import { MongoClient, Db, Collection, MongoClientOptions } from 'mongodb';
 import { User } from '../../domain/entities/User';
 import { Transaction } from '../../domain/entities/Transaction';
 import { Budget } from '../../domain/entities/Budget';
 import { Category } from '../../domain/entities/Category';
 import { logger } from '../logging/logger';
 
-// Connection URL
-const url = process.env.MONGO_URI || 'mongodb://localhost:27017';
-// Add connection options
-const connectionUrl = `${url}?connectTimeoutMS=30000&socketTimeoutMS=45000&serverSelectionTimeoutMS=30000`;
+// Connection URL with fallback to localhost if MONGODB_URI is not defined
+logger.info(`MONGODB_URI environment variable is ${process.env.MONGODB_URI ? 'set' : 'not set'}`); 
+
+// Parse the MongoDB URI to separate the connection string from query parameters
+let url = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+
+// Remove any query parameters from the URL as they'll be passed as options
+if (url.includes('?')) {
+  url = url.split('?')[0];
+  logger.info('Removed query parameters from MongoDB URI');
+}
+
 const dbName = process.env.MONGODB_DB_NAME || 'finance_dashboard';
+logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+logger.info(`MONGODB_URI is ${process.env.MONGODB_URI ? 'set' : 'not set'}`);
+logger.info(`MONGODB_DB_NAME is ${process.env.MONGODB_DB_NAME ? 'set' : 'not set'}`);
 
 // MongoDB client instance
 let client: MongoClient | null = null;
@@ -32,15 +43,18 @@ export async function connectToDatabase(): Promise<void> {
   }
 
   try {
-    // Use simplified connection approach with fewer options to avoid TypeScript issues
-    const options = {
+    // Define connection options
+    const options: MongoClientOptions = {
       serverSelectionTimeoutMS: 30000,
       connectTimeoutMS: 30000,
       socketTimeoutMS: 45000,
+      retryWrites: true,
+      maxPoolSize: 10,
+      minPoolSize: 5
     };
 
     logger.info(`Connecting to MongoDB at ${url}`);
-    client = await MongoClient.connect(connectionUrl, options);
+    client = await MongoClient.connect(url, options);
     db = client.db(dbName);
 
     // Initialize collections
