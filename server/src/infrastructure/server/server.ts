@@ -85,10 +85,11 @@ export async function buildServer(): Promise<FastifyInstance> {
   
   // Add global hook for CORS protection on all non-auth routes
   server.addHook('onRequest', async (request, reply) => {
-    // Skip CORS protection for authentication routes, documentation, and OPTIONS requests
+    // Skip CORS protection for authentication routes, documentation, categories, and OPTIONS requests
     if (request.method === 'OPTIONS' || 
         request.url.startsWith('/api/auth/login') || 
         request.url.startsWith('/api/auth/register') || 
+        request.url.startsWith('/api/categories') || 
         request.url.startsWith('/documentation') || 
         request.url === '/health') {
       return;
