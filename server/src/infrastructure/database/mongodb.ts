@@ -6,7 +6,7 @@ import { Category } from '../../domain/entities/Category';
 import { logger } from '../logging/logger';
 
 // Connection URL
-const url = 'mongodb://localhost:27017';
+const url = process.env.MONGO_URI || 'mongodb://localhost:27017';
 // Add connection options
 const connectionUrl = `${url}?connectTimeoutMS=30000&socketTimeoutMS=45000&serverSelectionTimeoutMS=30000`;
 const dbName = process.env.MONGODB_DB_NAME || 'finance_dashboard';
@@ -39,7 +39,7 @@ export async function connectToDatabase(): Promise<void> {
       socketTimeoutMS: 45000,
     };
 
-    logger.info('Connecting to MongoDB at localhost:27017');
+    logger.info(`Connecting to MongoDB at ${url}`);
     client = await MongoClient.connect(connectionUrl, options);
     db = client.db(dbName);
 
