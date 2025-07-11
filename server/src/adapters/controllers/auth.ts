@@ -24,8 +24,12 @@ export function registerAuthRoutes(server: FastifyInstance) {
   // Login route
   server.post('/api/auth/login', {
     schema: loginRequestSchema
+    // We don't need config here as auth is handled by our global hooks
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
+      // Log incoming login request (without sensitive data)
+      server.log.info(`Login attempt for email: ${(request.body as any)?.email || 'unknown'}`);
+      
       const body = request.body as z.infer<typeof loginSchema>;
       
       // Validate request body
@@ -38,18 +42,29 @@ export function registerAuthRoutes(server: FastifyInstance) {
       });
       
       if (!user) {
-        return reply.status(401).send({
-          message: 'Invalid email or password',
-        });
+        server.log.info(`Failed login attempt for email: ${validatedData.email}`);
+        return reply
+          .status(401)
+          .header('Access-Control-Allow-Origin', request.headers.origin || '*')
+          .header('Access-Control-Allow-Credentials', 'true')
+          .send({
+            message: 'Invalid email or password',
+          });
       }
       
       // Generate JWT token
       const token = authService.generateToken(user.id!);
       
-      return reply.status(200).send({
-        user,
-        token,
-      });
+      server.log.info(`Successful login for user: ${user.email}`);
+      
+      return reply
+        .status(200)
+        .header('Access-Control-Allow-Origin', request.headers.origin || '*')
+        .header('Access-Control-Allow-Credentials', 'true')
+        .send({
+          user,
+          token,
+        });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return reply.status(400).send({

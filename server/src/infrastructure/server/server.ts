@@ -27,11 +27,34 @@ export async function buildServer(): Promise<FastifyInstance> {
 
   // Register plugins
   await server.register(cors, {
-    origin: true, // Enable CORS for all origins, but we'll validate in our middleware
+    origin: (origin, cb) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return cb(null, true);
+      
+      // Get allowed origins from environment or use defaults
+      const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || [
+        'http://localhost:3001',
+        'https://personal-finance-dashboard-client.vercel.app',
+        'https://personal-finance-dashboard-4i81.onrender.com'
+      ];
+      
+      // Check if the origin is allowed
+      if (allowedOrigins.includes(origin) || allowedOrigins.some(allowed => origin.startsWith(allowed))) {
+        return cb(null, true);
+      }
+      
+      // Log blocked origins in development
+      if (process.env.NODE_ENV !== 'production') {
+        server.log.warn(`Origin blocked: ${origin}`);
+      }
+      
+      return cb(null, true); // Allow all origins in current implementation
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    preflightContinue: false, // Changed to false to let the CORS plugin handle OPTIONS requests
+    exposedHeaders: ['Authorization'],
+    preflightContinue: false,
   });
   
   // Register Swagger
@@ -83,15 +106,18 @@ export async function buildServer(): Promise<FastifyInstance> {
     transformStaticCSP: (header) => header
   });
   
-  // Add global hook for CORS protection on all routes except auth and documentation
+  // Add global hook for CORS protection on authenticated routes only
   server.addHook('onRequest', async (request, reply) => {
-    // Skip CORS protection for documentation and health check routes
-    if (request.url.startsWith('/documentation') || request.url === '/health') {
+    // Skip CORS protection for documentation, health check, and auth routes
+    if (request.url.startsWith('/documentation') || 
+        request.url === '/health' || 
+        request.url.startsWith('/api/auth/login') || 
+        request.url.startsWith('/api/auth/register') || 
+        request.method === 'OPTIONS') {
       return;
     }
     
-    // Apply CORS protection for all other routes
-    // The corsProtection middleware already handles skipping auth routes and OPTIONS requests
+    // Apply CORS protection for authenticated routes only
     await corsProtection(request, reply);
   });
 

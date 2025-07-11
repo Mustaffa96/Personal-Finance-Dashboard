@@ -14,6 +14,7 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
 /**
  * Enhanced CORS middleware that validates requests based on user authentication
  * This provides an additional layer of security by checking the origin against allowed origins
+ * Note: This middleware should only be applied to authenticated routes
  */
 export async function corsProtection(request: FastifyRequest, reply: FastifyReply) {
   const origin = request.headers.origin;
@@ -25,7 +26,7 @@ export async function corsProtection(request: FastifyRequest, reply: FastifyRepl
   
   // Skip CORS check for authentication routes
   const authRoutes = ['/api/auth/login', '/api/auth/register'];
-  if (authRoutes.includes(request.url)) {
+  if (authRoutes.some(route => request.url.startsWith(route))) {
     return;
   }
   
