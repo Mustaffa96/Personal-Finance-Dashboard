@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { User, CreateUserDTO, UpdateUserDTO } from '../../domain/entities/User';
 import { UserRepository } from '../../domain/interfaces/repositories/UserRepository';
 import { collections } from '../../infrastructure/database/mongodb';

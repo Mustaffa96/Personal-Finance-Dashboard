@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import 'dotenv/config';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { ObjectId } from 'mongodb';
 import { connectToDatabase, closeDatabase, collections } from '../infrastructure/database/mongodb';
 import { TransactionType } from '../domain/entities/Transaction';

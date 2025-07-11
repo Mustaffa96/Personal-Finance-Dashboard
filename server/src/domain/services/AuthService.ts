@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { UserAuthDTO, UserResponseDTO } from '../entities/User';
 import { UserRepository } from '../interfaces/repositories/UserRepository';
