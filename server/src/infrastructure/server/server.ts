@@ -7,6 +7,7 @@ import { registerUserRoutes } from '../../adapters/controllers/users';
 import { registerTransactionRoutes } from '../../adapters/controllers/transactions';
 import { registerBudgetRoutes } from '../../adapters/controllers/budgets';
 import { registerCategoryRoutes } from '../../adapters/controllers/categories';
+import { corsProtection } from '../../adapters/middlewares/auth';
 
 export async function buildServer(): Promise<FastifyInstance> {
   const server = fastify({
@@ -24,8 +25,30 @@ export async function buildServer(): Promise<FastifyInstance> {
 
   // Register plugins
   await server.register(cors, {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
+    origin: true, // Enable CORS for all origins, but we'll validate in our middleware
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    preflightContinue: true,
+  });
+  
+  // Handle preflight OPTIONS requests
+  server.options('/*', (request, reply) => {
+    reply.send();
+  });
+  
+  // Add global hook for CORS protection on all non-auth routes
+  server.addHook('onRequest', async (request, reply) => {
+    // Skip CORS protection for authentication routes and OPTIONS requests
+    if (request.method === 'OPTIONS' || 
+        request.url.startsWith('/api/auth/login') || 
+        request.url.startsWith('/api/auth/register') || 
+        request.url === '/health') {
+      return;
+    }
+    
+    // Apply CORS protection for all other routes
+    await corsProtection(request, reply);
   });
 
   await server.register(jwt, {
