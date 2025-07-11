@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { MongoUserRepository } from '../repositories/UserRepository';
 import { AuthService } from '../../domain/services/AuthService';
 import { UserSchema } from '../../domain/entities/User';
+import { loginRequestSchema, registerRequestSchema } from '../../infrastructure/swagger/schemas';
 
 const userRepository = new MongoUserRepository();
 const authService = new AuthService(userRepository);
@@ -21,7 +22,9 @@ const registerSchema = UserSchema.pick({
 
 export function registerAuthRoutes(server: FastifyInstance) {
   // Login route
-  server.post('/api/auth/login', async (request: FastifyRequest, reply: FastifyReply) => {
+  server.post('/api/auth/login', {
+    schema: loginRequestSchema
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const body = request.body as z.infer<typeof loginSchema>;
       
@@ -65,7 +68,9 @@ export function registerAuthRoutes(server: FastifyInstance) {
   });
   
   // Register route
-  server.post('/api/auth/register', async (request: FastifyRequest, reply: FastifyReply) => {
+  server.post('/api/auth/register', {
+    schema: registerRequestSchema
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const body = request.body as z.infer<typeof registerSchema>;
       
@@ -116,6 +121,38 @@ export function registerAuthRoutes(server: FastifyInstance) {
   
   // Verify token route
   server.get('/api/auth/me', {
+    schema: {
+      description: 'Get current user information',
+      tags: ['auth'],
+      summary: 'Get the authenticated user profile',
+      security: [{ bearerAuth: [] }],
+      response: {
+        200: {
+          description: 'User information',
+          type: 'object',
+          properties: {
+            user: {
+              type: 'object',
+              properties: {
+                _id: { type: 'string' },
+                email: { type: 'string' },
+                name: { type: 'string' },
+                createdAt: { type: 'string', format: 'date-time' },
+                updatedAt: { type: 'string', format: 'date-time' }
+              }
+            }
+          }
+        },
+        401: {
+          description: 'Unauthorized',
+          type: 'object',
+          properties: {
+            error: { type: 'string' },
+            message: { type: 'string' }
+          }
+        }
+      }
+    },
     preHandler: async (request: FastifyRequest, reply: FastifyReply) => {
       try {
         await request.jwtVerify();

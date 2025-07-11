@@ -1,6 +1,8 @@
 import fastify, { FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
+import swagger from '@fastify/swagger';
+import swaggerUi from '@fastify/swagger-ui';
 import { connectToDatabase } from '../database/mongodb';
 import { registerAuthRoutes } from '../../adapters/controllers/auth';
 import { registerUserRoutes } from '../../adapters/controllers/users';
@@ -32,12 +34,62 @@ export async function buildServer(): Promise<FastifyInstance> {
     preflightContinue: false, // Changed to false to let the CORS plugin handle OPTIONS requests
   });
   
+  // Register Swagger
+  await server.register(swagger, {
+    swagger: {
+      info: {
+        title: 'Personal Finance Dashboard API',
+        description: 'API documentation for Personal Finance Dashboard',
+        version: '1.0.0'
+      },
+      externalDocs: {
+        url: 'https://swagger.io',
+        description: 'Find more info here'
+      },
+      host: `${process.env.HOST || 'localhost'}:${process.env.PORT || '5000'}`,
+      schemes: ['http'],
+      consumes: ['application/json'],
+      produces: ['application/json'],
+      securityDefinitions: {
+        bearerAuth: {
+          type: 'apiKey',
+          name: 'Authorization',
+          in: 'header',
+          description: 'Enter the token with the `Bearer: ` prefix, e.g. "Bearer abcde12345"'
+        }
+      },
+      tags: [
+        { name: 'auth', description: 'Authentication endpoints' },
+        { name: 'users', description: 'User related endpoints' },
+        { name: 'transactions', description: 'Transaction related endpoints' },
+        { name: 'budgets', description: 'Budget related endpoints' },
+        { name: 'categories', description: 'Category related endpoints' }
+      ],
+    }
+  });
+  
+  // Register Swagger UI
+  await server.register(swaggerUi, {
+    routePrefix: '/documentation',
+    uiConfig: {
+      docExpansion: 'list',
+      deepLinking: false
+    },
+    uiHooks: {
+      onRequest: function (request, reply, next) { next() },
+      preHandler: function (request, reply, next) { next() }
+    },
+    staticCSP: true,
+    transformStaticCSP: (header) => header
+  });
+  
   // Add global hook for CORS protection on all non-auth routes
   server.addHook('onRequest', async (request, reply) => {
-    // Skip CORS protection for authentication routes and OPTIONS requests
+    // Skip CORS protection for authentication routes, documentation, and OPTIONS requests
     if (request.method === 'OPTIONS' || 
         request.url.startsWith('/api/auth/login') || 
         request.url.startsWith('/api/auth/register') || 
+        request.url.startsWith('/documentation') || 
         request.url === '/health') {
       return;
     }
