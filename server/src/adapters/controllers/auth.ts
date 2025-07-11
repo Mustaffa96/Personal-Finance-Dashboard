@@ -39,29 +39,27 @@ export function registerAuthRoutes(server: FastifyInstance) {
       
       if (!user) {
         return reply.status(401).send({
-          error: 'Authentication failed',
           message: 'Invalid email or password',
         });
       }
       
       // Generate JWT token
-      const accessToken = authService.generateToken(user.id!);
+      const token = authService.generateToken(user.id!);
       
       return reply.status(200).send({
         user,
-        accessToken,
+        token,
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return reply.status(400).send({
-          error: 'Validation error',
+          message: 'Validation error',
           details: error.errors,
         });
       }
       
       server.log.error(error);
       return reply.status(500).send({
-        error: 'Internal server error',
         message: 'An unexpected error occurred',
       });
     }
@@ -81,7 +79,6 @@ export function registerAuthRoutes(server: FastifyInstance) {
       const existingUser = await userRepository.findByEmail(validatedData.email);
       if (existingUser) {
         return reply.status(409).send({
-          error: 'Registration failed',
           message: 'Email already in use',
         });
       }
@@ -97,23 +94,22 @@ export function registerAuthRoutes(server: FastifyInstance) {
       const { password: _password, ...userWithoutPassword } = user;
       
       // Generate JWT token
-      const accessToken = authService.generateToken(user.id!);
+      const token = authService.generateToken(user.id!);
       
       return reply.status(201).send({
         user: userWithoutPassword,
-        accessToken,
+        token,
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return reply.status(400).send({
-          error: 'Validation error',
+          message: 'Validation error',
           details: error.errors,
         });
       }
       
       server.log.error(error);
       return reply.status(500).send({
-        error: 'Internal server error',
         message: 'An unexpected error occurred',
       });
     }
@@ -147,7 +143,6 @@ export function registerAuthRoutes(server: FastifyInstance) {
           description: 'Unauthorized',
           type: 'object',
           properties: {
-            error: { type: 'string' },
             message: { type: 'string' }
           }
         }
@@ -158,7 +153,6 @@ export function registerAuthRoutes(server: FastifyInstance) {
         await request.jwtVerify();
       } catch (err) {
         reply.status(401).send({
-          error: 'Unauthorized',
           message: 'Invalid or expired token',
         });
       }
@@ -170,7 +164,6 @@ export function registerAuthRoutes(server: FastifyInstance) {
       const user = await userRepository.findById(userId);
       if (!user) {
         return reply.status(404).send({
-          error: 'User not found',
           message: 'User no longer exists',
         });
       }
@@ -184,7 +177,6 @@ export function registerAuthRoutes(server: FastifyInstance) {
     } catch (error) {
       server.log.error(error);
       return reply.status(500).send({
-        error: 'Internal server error',
         message: 'An unexpected error occurred',
       });
     }
