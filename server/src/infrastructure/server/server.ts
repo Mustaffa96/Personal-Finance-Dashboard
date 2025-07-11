@@ -90,6 +90,9 @@ export async function buildServer(): Promise<FastifyInstance> {
         request.url.startsWith('/api/auth/login') || 
         request.url.startsWith('/api/auth/register') || 
         request.url.startsWith('/api/categories') || 
+        request.url.startsWith('/api/users') ||
+        request.url.startsWith('/api/transactions') ||
+        request.url.startsWith('/api/budgets') ||
         request.url.startsWith('/documentation') || 
         request.url === '/health') {
       return;
