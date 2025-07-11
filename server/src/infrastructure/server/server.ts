@@ -29,12 +29,7 @@ export async function buildServer(): Promise<FastifyInstance> {
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    preflightContinue: true,
-  });
-  
-  // Handle preflight OPTIONS requests
-  server.options('/*', (request, reply) => {
-    reply.send();
+    preflightContinue: false, // Changed to false to let the CORS plugin handle OPTIONS requests
   });
   
   // Add global hook for CORS protection on all non-auth routes
