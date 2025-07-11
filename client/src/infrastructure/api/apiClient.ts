@@ -1,4 +1,14 @@
 import { getSession } from 'next-auth/react';
+import type { Session } from 'next-auth';
+
+// Extended session type to handle custom properties
+type ExtendedSession = Session & {
+  accessToken?: string;
+  token?: string;
+  user?: Session['user'] & {
+    accessToken?: string;
+  };
+}
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -35,11 +45,25 @@ export const apiClient = async <T>(
   
   // Add auth token if required
   if (requiresAuth) {
-    const session = await getSession();
-    // Use type assertion for the session token
-    const sessionWithToken = session as { accessToken?: string };
-    if (session && sessionWithToken.accessToken) {
-      headers['Authorization'] = `Bearer ${sessionWithToken.accessToken}`;
+    const session = await getSession() as ExtendedSession | null;
+    console.log('Session for auth:', session); // Debug log
+    
+    if (session) {
+      // Access token could be in different locations based on NextAuth configuration
+      // Try all possible locations where the token might be stored
+      const token = 
+        session.accessToken || 
+        (session.user && session.user.accessToken) || 
+        session.token;
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+        console.log('Added auth token to request');
+      } else {
+        console.warn('No auth token found in session');
+      }
+    } else {
+      console.warn('No session found for authenticated request');
     }
   }
   

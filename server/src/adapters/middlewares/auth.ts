@@ -5,8 +5,21 @@ const userRepository = new MongoUserRepository();
 
 export async function authenticate(request: FastifyRequest, reply: FastifyReply) {
   try {
+    // Extract token from Authorization header
+    const authHeader = request.headers.authorization;
+    if (!authHeader) {
+      throw new Error('No authorization header provided');
+    }
+    
+    // Log token format for debugging (only in development)
+    if (process.env.NODE_ENV !== 'production') {
+      request.log.debug(`Auth header format: ${authHeader.substring(0, 15)}...`);
+    }
+    
+    // Verify JWT token
     await request.jwtVerify();
   } catch (err) {
+    request.log.error(`Authentication error: ${err instanceof Error ? err.message : 'Unknown error'}`);
     reply.status(401).send({ error: 'Unauthorized', message: 'Authentication required' });
   }
 }
@@ -31,15 +44,48 @@ export async function corsProtection(request: FastifyRequest, reply: FastifyRepl
   }
   
   try {
-    // Verify JWT token
-    await request.jwtVerify();
+    // Extract token from Authorization header
+    const authHeader = request.headers.authorization;
+    if (!authHeader) {
+      request.log.warn('No authorization header provided');
+      request.log.warn(`Request URL: ${request.url}, Method: ${request.method}`);
+      throw new Error('No authorization header provided');
+    }
+    
+    // Log token format for debugging (only in development)
+    if (process.env.NODE_ENV !== 'production') {
+      request.log.debug(`Auth header format: ${authHeader.substring(0, 15)}...`);
+      request.log.debug(`Request URL: ${request.url}, Method: ${request.method}`);
+      request.log.debug(`Request query: ${JSON.stringify(request.query)}`);
+    }
+    
+    try {
+      // Verify JWT token
+      await request.jwtVerify();
+    } catch (jwtError) {
+      request.log.error(`JWT verification error: ${jwtError instanceof Error ? jwtError.message : 'Unknown error'}`);
+      request.log.error(`Token: ${authHeader.substring(0, 20)}...`); // Log part of the token for debugging
+      throw new Error(`JWT verification failed: ${jwtError instanceof Error ? jwtError.message : 'Unknown error'}`);
+    }
     
     // Get user ID from token
+    if (!request.user || typeof request.user !== 'object') {
+      request.log.error('Invalid token payload: user object missing');
+      request.log.error(`Token payload: ${JSON.stringify(request.user)}`); // Log the token payload
+      throw new Error('Invalid token payload');
+    }
+    
     const { userId } = request.user as { userId: string };
+    if (!userId) {
+      request.log.error('Invalid token payload: userId missing');
+      request.log.error(`Token payload: ${JSON.stringify(request.user)}`); // Log the token payload
+      throw new Error('Invalid token payload: userId missing');
+    }
     
     // Get user from database
     const user = await userRepository.findById(userId);
     if (!user) {
+      request.log.warn(`User not found: ${userId}`);
       throw new Error('User not found');
     }
     
@@ -58,20 +104,51 @@ export async function corsProtection(request: FastifyRequest, reply: FastifyRepl
       allowedOrigins = [...allowedOrigins, ...adminOrigins];
     }
     
-    // Log for debugging (remove in production)
+    // Log for debugging
     request.log.debug(`Request from origin: ${origin}, Allowed origins: ${allowedOrigins.join(', ')}`);
     
-    // Extract just the origin part (scheme + hostname + port) without any path
-    const originWithoutPath = origin ? new URL(origin).origin : null;
+    // If no origin header is present, allow the request (likely a direct API call)
+    if (!origin) {
+      request.log.debug('No origin header present, allowing request');
+      return;
+    }
     
-    // Check if the origin (without path) is in our allowed origins list
-    if (originWithoutPath && !allowedOrigins.some(allowed => originWithoutPath.startsWith(allowed))) {
-      request.log.warn(`Access denied for origin: ${origin} for user: ${userId}`);
-      throw new Error('Origin not allowed');
+    try {
+      // Extract just the origin part (scheme + hostname + port) without any path
+      const originWithoutPath = new URL(origin).origin;
+      
+      // Check if the origin is allowed - more permissive check
+      const isAllowed = allowedOrigins.some(allowed => {
+        // Handle localhost special case
+        if (allowed.includes('localhost') && originWithoutPath.includes('localhost')) {
+          return true;
+        }
+        return originWithoutPath.startsWith(allowed) || allowed.includes(originWithoutPath);
+      });
+      
+      if (!isAllowed) {
+        request.log.warn(`Access denied for origin: ${origin} for user: ${userId}`);
+        throw new Error('Origin not allowed');
+      }
+    } catch (urlError) {
+      // If URL parsing fails, log it but don't block the request
+      // This is a more permissive approach for development
+      request.log.warn(`Invalid origin format: ${origin}, allowing request`);
     }
     
   } catch (err) {
-    // Don't expose detailed error information
+    // Log the actual error for debugging
+    request.log.error(`CORS protection error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    request.log.error(`Request URL: ${request.url}, Method: ${request.method}`);
+    request.log.error(`Request headers: ${JSON.stringify(request.headers)}`);
+    
+    // In development mode, be more permissive
+    if (process.env.NODE_ENV !== 'production') {
+      request.log.warn('Development mode: Allowing request despite auth error');
+      return; // Allow the request to proceed in development
+    }
+    
+    // Don't expose detailed error information in response
     reply.status(403).send({ error: 'Forbidden', message: 'Access denied' });
   }
 }

@@ -1,17 +1,14 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { UserAuthDTO, UserResponseDTO } from '../entities/User';
 import { UserRepository } from '../interfaces/repositories/UserRepository';
+import { JWT_SECRET, TOKEN_EXPIRATION } from '../../infrastructure/config/jwt';
 
 export class AuthService {
   private userRepository: UserRepository;
-  private jwtSecret: string;
-  private tokenExpiration: string;
 
   constructor(userRepository: UserRepository) {
     this.userRepository = userRepository;
-    this.jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
-    this.tokenExpiration = process.env.TOKEN_EXPIRATION || '1d';
   }
 
   async validateUser(credentials: UserAuthDTO): Promise<UserResponseDTO | null> {
@@ -33,19 +30,21 @@ export class AuthService {
   }
 
   generateToken(userId: string): string {
-    // Using a more direct approach without type assertions
-    return jwt.sign(
-      { userId },
-      this.jwtSecret,
-      { expiresIn: '1d' } // Hardcode a valid value for now
-    );
+    const payload = { userId };
+    
+    // Use the shared JWT configuration with proper typing
+    // Cast TOKEN_EXPIRATION to a type that works with jwt.sign
+    return jwt.sign(payload, JWT_SECRET, {
+      expiresIn: TOKEN_EXPIRATION as jwt.SignOptions['expiresIn']
+    });
   }
 
   verifyToken(token: string): { userId: string } | null {
     try {
-      const decoded = jwt.verify(token, this.jwtSecret) as { userId: string };
+      const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
       return decoded;
     } catch (error) {
+      console.error('Token verification error:', error);
       return null;
     }
   }

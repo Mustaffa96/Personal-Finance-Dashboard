@@ -3,6 +3,7 @@ import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
+import { JWT_SECRET } from '../config/jwt';
 import { connectToDatabase } from '../database/mongodb';
 import { registerAuthRoutes } from '../../adapters/controllers/auth';
 import { registerUserRoutes } from '../../adapters/controllers/users';
@@ -121,8 +122,9 @@ export async function buildServer(): Promise<FastifyInstance> {
     await corsProtection(request, reply);
   });
 
+  // Use the shared JWT configuration
   await server.register(jwt, {
-    secret: process.env.JWT_SECRET || 'your-secret-key',
+    secret: JWT_SECRET,
   });
 
   // Connect to MongoDB
