@@ -43,7 +43,7 @@ export async function corsProtection(request: FastifyRequest, reply: FastifyRepl
     }
     
     // Check if origin is allowed using user-specific allowed origins
-    let allowedOrigins = process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3001'];
+    let allowedOrigins = process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3001', 'https://personal-finance-dashboard-client.vercel.app'];
     
     // Use user-specific allowed origins if available
     if (user.allowedOrigins && user.allowedOrigins.length > 0) {
@@ -60,7 +60,11 @@ export async function corsProtection(request: FastifyRequest, reply: FastifyRepl
     // Log for debugging (remove in production)
     request.log.debug(`Request from origin: ${origin}, Allowed origins: ${allowedOrigins.join(', ')}`);
     
-    if (origin && !allowedOrigins.includes(origin)) {
+    // Extract just the origin part (scheme + hostname + port) without any path
+    const originWithoutPath = origin ? new URL(origin).origin : null;
+    
+    // Check if the origin (without path) is in our allowed origins list
+    if (originWithoutPath && !allowedOrigins.some(allowed => originWithoutPath.startsWith(allowed))) {
       request.log.warn(`Access denied for origin: ${origin} for user: ${userId}`);
       throw new Error('Origin not allowed');
     }
