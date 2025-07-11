@@ -7,6 +7,7 @@ import { Suspense } from 'react';
 import { headers } from 'next/headers';
 import { forceDynamicRendering } from '../force-dynamic-rendering';
 import { Toaster } from '../components/Toaster';
+import DisclaimerWrapper from './components/DisclaimerWrapper';
 
 // Optimize font loading
 const inter = Inter({
@@ -66,7 +67,7 @@ export const viewport: Viewport = {
   maximumScale: 5,
   themeColor: '#ffffff',
   // Add performance optimization hints
-  colorScheme: 'light dark',
+  colorScheme: 'light',
 };
 
 export default function RootLayout({
@@ -93,8 +94,8 @@ export default function RootLayout({
         {/* Preload critical CSS */}
         <link rel="preload" href="/globals.css" as="style" />
         
-        {/* Preload critical images that might be part of LCP */}
-        <link rel="preload" href="/images/logo.png" as="image" fetchPriority="high" />
+        {/* Preload critical fonts for better LCP */}
+        <link rel="preload" href="/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         
         {/* Add priority hints for critical resources */}
         <meta name="priority" content="high" />
@@ -104,7 +105,9 @@ export default function RootLayout({
         <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center text-lg font-medium">Loading dashboard...</div>}>
           <Providers>
             {/* Use priority attribute for LCP elements */}
-            <div className="contents">{children}</div>
+            <DisclaimerWrapper>
+              <div className="contents">{children}</div>
+            </DisclaimerWrapper>
             <Toaster />
           </Providers>
         </Suspense>

@@ -110,7 +110,7 @@ export default function DashboardClient({ user, children }: DashboardClientProps
                       rel="noopener noreferrer"
                       className="text-blueGray-500 hover:text-blueGray-700 text-sm font-semibold py-1 cursor-pointer transition-colors"
                     >
-                      Personal Finance Dashboard
+                      FinanceDash
                     </a>
                   </div>
                 </div>

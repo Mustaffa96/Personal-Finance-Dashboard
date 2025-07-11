@@ -59,7 +59,11 @@ const PieChart = dynamic(
 );
 
 // Type definition for ChartJS DataLabels plugin
-type ChartJSDataLabels = any;
+interface ChartJSDataLabels {
+  id: string;
+  defaults: Record<string, unknown>;
+  [key: string]: unknown;
+}
 
 // Dynamically import Chart.js Datalabels plugin for enhanced chart labels
 const importChartJsDataLabels = async () => {
@@ -181,7 +185,7 @@ export default function ExpenseCategoryChart({ userId }: ExpenseCategoryChartPro
     if (typeof window === 'undefined') return;
     
     let isMounted = true;
-    let chartJsDataLabels: any = null;
+    let chartJsDataLabels: ChartJSDataLabels | null = null;
     
     const initializeChart = async () => {
       try {
@@ -607,11 +611,7 @@ export default function ExpenseCategoryChart({ userId }: ExpenseCategoryChartPro
     });
   };
 
-  // Define responsive legend position based on window width
-  const getLegendPosition = () => {
-    if (typeof window === 'undefined') return 'top';
-    return window.innerWidth < 768 ? 'top' : 'right';
-  };
+  // Legend position is now handled directly in the Chart component
 
   // Chart options - defined outside the render to prevent recreation
   const chartOptions = {
